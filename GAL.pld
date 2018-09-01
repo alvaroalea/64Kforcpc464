@@ -8,7 +8,7 @@ Designer Alvaro Alea ;
 Company  None ;
 Assembly None ;
 Location  ;
-Device   22V10 ;
+Device   G22V10 ;
 
 /* *************** INPUT PINS *********************/
 PIN  1   = IOREQ                 ; /*  inverted                       */ 
@@ -54,66 +54,99 @@ CLK_D = !IOREQ # !WR # !A15 # !D7 # !D6;
 /*FIXME : ver si se puede ignorar RAM_RD en los modos 4 a 7*/
 /*FIXME : */
 
+'b'0010000' => 'b'0100 ; /* pagina 1 chip 1, desactiva RAM CPC */
+'b'0100100' => 'b'0100 ; /* pagina 1 chip 1, desactiva RAM CPC */
+'b'0100101' => 'b'0100 ; /* pagina 1 chip 1, desactiva RAM CPC nunca deberia pasar esto */
+
+'b'0010010' => 'b'0110 ; /* pagina 2 chip 1, desactiva RAM CPC */
+'b'0010011' => 'b'0110 ; /* pagina 2 chip 1, desactiva RAM CPC nunca deberia pasar esto */
+'b'0101100' => 'b'0110 ; /* pagina 2 chip 1, desactiva RAM CPC nunca deberia pasar esto */
+'b'0101101' => 'b'0110 ; /* pagina 2 chip 1, desactiva RAM CPC */
+
+'b'0010100' => 'b'1000 ; /* pagina 1 chip 2, desactiva RAM CPC */
+'b'0010101' => 'b'1000 ; /* pagina 1 chip 2, desactiva RAM CPC nunca deberia pasar esto */
+'b'0110100' => 'b'1000 ; /* pagina 1 chip 2, desactiva RAM CPC */
+'b'0110101' => 'b'1000 ; /* pagina 1 chip 2, desactiva RAM CPC nunca deberia pasar esto */
+
+'b'0001110' => 'b'1010 ; /* pagina 2 chip 2, en slot 3, desactiva RAM CPC */
+'b'0010110' => 'b'1010 ; /* pagina 2 chip 2, desactiva RAM CPC */
+'b'0011010' => 'b'1010 ; /* pagina 2 chip 2, desactiva RAM CPC */
+'b'0111100' => 'b'1010 ; /* pagina 2 chip 2, desactiva RAM CPC */
+'b'0111101' => 'b'1010 ; /* pagina 2 chip 2, desactiva RAM CPC nunca deberia pasar esto */
+
+IC1_CE = MREQ  D2  D1  D0   A15  A14  RAM_RD ;
+
+IC2_CE = MREQ  D2  D1  D0   A15  A14  RAM_RD ;
+
+RAM_A14 = MREQ  D2  D1  D0   A15  A14  RAM_RD ;
+
+RAM_DIS = MREQ  D2  D1  D0   A15  A14  RAM_RD ;
+
+
+/* Esto deberia ser mucho mas claro usando tablas de la verdad pero la mierda del WinCULPS */
+/* no le gusta que use numeros no seguidos en el nombre de las variables */
+
+
 FIELD input = [ MREQ, D2, D1, D0,  A15, A14, RAM_RD ];
 FIELD output = [ IC1_CE,IC2_CE,RAM_A14,RAM_DIS];
 TABLE input => output {
-[‘b’0 000 000...‘b’0 000 111 ] => ‘b’1111 ; /* todo inactivo primeros 64K de ram */ 
+/* 'b'[0000000..0000111] => 'b'1111 ; /* todo inactivo primeros 64K de ram */ 
 
 
 /* 0,0,1 = 0xC1, pagina 7 en slot 3 */
-[‘b’0 001 000...‘b’0 001 101 ] => ‘b’1111 ;
-‘b’0 001 110’ => ‘b’1010 ; /* pagina 2 chip 2, en slot 3, desactiva RAM CPC */
-‘b’0 001 111  => ‘b’1111 ;
+/* 'b'[0001000..0001101] => 'b'1111 ;
+'b'0001110' => 'b'1010 ; /* pagina 2 chip 2, en slot 3, desactiva RAM CPC */
+'b'0001111  => 'b'1111 ;
 
 
 /* 0,1,0 = 0xC2 all ram upram, mapa completo 4,5,6,7 */
-‘b’0 010 000’ => ‘b’0100 ; /* pagina 1 chip 1, desactiva RAM CPC */
-‘b’0 010 001' => ‘b’1111 ;
+'b'0010000' => 'b'0100 ; /* pagina 1 chip 1, desactiva RAM CPC */
+'b'0010001' => 'b'1111 ;
 
-‘b’0 010 010’ => ‘b’0110 ; /* pagina 2 chip 1, desactiva RAM CPC */
-‘b’0 010 011’ => ‘b’0110 ; /* pagina 2 chip 1, desactiva RAM CPC nunca deberia pasar esto */
-‘b’0 010 100’ => ‘b’1000 ; /* pagina 1 chip 2, desactiva RAM CPC */
-‘b’0 010 101’ => ‘b’1000 ; /* pagina 1 chip 2, desactiva RAM CPC nunca deberia pasar esto */
+'b'0010010' => 'b'0110 ; /* pagina 2 chip 1, desactiva RAM CPC */
+'b'0010011' => 'b'0110 ; /* pagina 2 chip 1, desactiva RAM CPC nunca deberia pasar esto */
+'b'0010100' => 'b'1000 ; /* pagina 1 chip 2, desactiva RAM CPC */
+'b'0010101' => 'b'1000 ; /* pagina 1 chip 2, desactiva RAM CPC nunca deberia pasar esto */
 
-‘b’0 010 110’ => ‘b’1010 ; /* pagina 2 chip 2, desactiva RAM CPC */
-‘b’0 010 111  => ‘b’1111 ;
+'b'0010110' => 'b'1010 ; /* pagina 2 chip 2, desactiva RAM CPC */
+'b'0010111  => 'b'1111 ;
 
 
 /* 0,1,1 = 0xC3 pagina 7 en slot 3 (0xC00-0xFFFF) mapa completo 0,3,2,7 */
-/* el slot 1 entra por la señal force A15 */
-[‘b’0 011 000...‘b’0 011 001 ] => ‘b’1111 ;
-‘b’0 011 010’ => ‘b’1010 ; /* pagina 2 chip 2, desactiva RAM CPC */
-[‘b’0 011 011...‘b’0 011 111 ] => ‘b’1111 ;
+/* el slot 1 entra por la senal force A15 */
+/* 'b'[0011000..0011001] => 'b'1111 ;
+'b'0011010' => 'b'1010 ; /* pagina 2 chip 2, desactiva RAM CPC */
+/* 'b'[0011011..0011111] => 'b'1111 ;
 
 
 /* Modos 4 a 7, solo entra la pagina 2 */
-[‘b’0 100 000...‘b’0 100 011 ] => ‘b’1111 ;
-‘b’0 100 100’ => ‘b’0100 ; /* pagina 1 chip 1, desactiva RAM CPC */
-‘b’0 100 101’ => ‘b’0100 ; /* pagina 1 chip 1, desactiva RAM CPC nunca deberia pasar esto */
+/* 'b'[0100000..0100011] => 'b'1111 ;
+'b'0100100' => 'b'0100 ; /* pagina 1 chip 1, desactiva RAM CPC */
+'b'0100101' => 'b'0100 ; /* pagina 1 chip 1, desactiva RAM CPC nunca deberia pasar esto */
 
-[‘b’0 100 110...‘b’0 101 011 ] => ‘b’1111 ;
+/* 'b'[0100110..0101011] => 'b'1111 ;
 
-‘b’0 101 100’ => ‘b’0110 ; /* pagina 2 chip 1, desactiva RAM CPC nunca deberia pasar esto */
-‘b’0 101 101’ => ‘b’0110 ; /* pagina 2 chip 1, desactiva RAM CPC */
+'b'0101100' => 'b'0110 ; /* pagina 2 chip 1, desactiva RAM CPC nunca deberia pasar esto */
+'b'0101101' => 'b'0110 ; /* pagina 2 chip 1, desactiva RAM CPC */
 
-[‘b’0 101 110...‘b’0 110 011 ] => ‘b’1111 ;
+/* 'b'[0101110..0110011] => 'b'1111 ;
 
-‘b’0 110 100’ => ‘b’1000 ; /* pagina 1 chip 2, desactiva RAM CPC */
-‘b’0 110 101’ => ‘b’1000 ; /* pagina 1 chip 2, desactiva RAM CPC nunca deberia pasar esto */
+'b'0110100' => 'b'1000 ; /* pagina 1 chip 2, desactiva RAM CPC */
+'b'0110101' => 'b'1000 ; /* pagina 1 chip 2, desactiva RAM CPC nunca deberia pasar esto */
 
-[‘b’0 110 110...‘b’0 111 011 ] => ‘b’1111 ;
+/* 'b'[0110110..0111011] => 'b'1111 ;
 
-‘b’0 111 100’ => ‘b’1010 ; /* pagina 2 chip 2, desactiva RAM CPC */
-‘b’0 111 101’ => ‘b’1010 ; /* pagina 2 chip 2, desactiva RAM CPC nunca deberia pasar esto */
+'b'0111100' => 'b'1010 ; /* pagina 2 chip 2, desactiva RAM CPC */
+'b'0111101' => 'b'1010 ; /* pagina 2 chip 2, desactiva RAM CPC nunca deberia pasar esto */
 
-[‘b’0 111 110...‘b’0 111 111 ] => ‘b’1111 ;
+/* 'b'[0111110..0111111] => 'b'1111 ;
 
-[‘b’1 000 000...‘b’1 111 111 ] => ‘b’1111 ; /* todo inactivo MREQ inactivo */
+/* 'b'[1000000..1111111] => 'b'1111 ; /* todo inactivo MREQ inactivo */
 }
 
 /* LAS BASCULAS DE FORZADO */
 
-/* El truco es que la señal forzada esta en la propia equacion, asi que los dos primeros */
+/* El truco es que la senal forzada esta en la propia equacion, asi que los dos primeros */
 /* Son un pulso */
 /* Forzamos MREQ solo si escribimos, si leemos lo hacemos con RAM_DIS */
 
