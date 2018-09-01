@@ -1,0 +1,123 @@
+/* Mapper for add 64Kb of RAM to Amstrad CPC464 */
+/* for use only with Static RAM (2x32Kb) */
+Name     CpcRamMapper;
+PartNo   00 ;
+Date     28/08/2018 ;
+Revision 02 ; /* la bascula D ahora es externa */
+Designer Alvaro Alea ;
+Company  None ;
+Assembly None ;
+Location  ;
+Device   22V10 ;
+
+/* *************** INPUT PINS *********************/
+PIN  1   = IOREQ                 ; /*  inverted                       */ 
+PIN  2   = MREQ                  ; /*  inverted                       */ 
+PIN  3   = WR                    ; /*  inverted                       */ 
+PIN  4   = D7                    ; /*                                 */ 
+PIN  5   = D6                    ; /*                                 */ 
+PIN  6   = A15                   ; /*                                 */ 
+PIN  7   = A14                   ; /*                                 */ 
+PIN  8   = RAM_RD                ; /*   inverted                      */ 
+PIN  9   = D0                    ; /*                                 */ 
+PIN  10  = D1                    ; /*                                 */ 
+PIN  11  = D2                    ; /*                                 */ 
+PIN  13  = RD                    ; /*   inverted                      */ 
+
+
+/* *************** OUTPUT PINS *********************/
+
+PIN  14   = RAM_DIS              ; /*   1=disable                     */ 	   		
+PIN  15   = CLK_D		         ; /*   inverted                      */ 
+PIN  16   = IC1_CE               ; /*   inverted                      */ 
+PIN  17   = SPARE2               ; /*                                 */ 
+PIN  18   = END_FORCE            ; /*                                 */ 
+PIN  19   = FORCE_A15            ; /*                                 */ 
+PIN  20   = RAM_A14              ; /*                                 */ 
+PIN  21   = IC2_CE               ; /*   inverted                      */
+PIN  22   = SPARE1               ; /*                                 */ 
+PIN  23   = FORCE_MREQ           ; /*                                 */ 
+
+/* **** LOGIC *** */
+$define ON 'b'1
+$define OFF 'b'0
+
+/* *** REGISTRO DE PAGINADO *** */
+
+CLK_D = !IOREQ # !WR # !A15 # !D7 # !D6;
+
+
+
+/* *** SELECCION DE CHIP *** */
+
+/*FIXME : ver si hace falta WR y como influye RAM_RD */
+/*FIXME : ver si se puede ignorar RAM_RD en los modos 4 a 7*/
+/*FIXME : */
+
+FIELD input = [ MREQ, D2, D1, D0,  A15, A14, RAM_RD ];
+FIELD output = [ IC1_CE,IC2_CE,RAM_A14,RAM_DIS];
+TABLE input => output {
+[‘b’0 000 000...‘b’0 000 111 ] => ‘b’1111 ; /* todo inactivo primeros 64K de ram */ 
+
+
+/* 0,0,1 = 0xC1, pagina 7 en slot 3 */
+[‘b’0 001 000...‘b’0 001 101 ] => ‘b’1111 ;
+‘b’0 001 110’ => ‘b’1010 ; /* pagina 2 chip 2, en slot 3, desactiva RAM CPC */
+‘b’0 001 111  => ‘b’1111 ;
+
+
+/* 0,1,0 = 0xC2 all ram upram, mapa completo 4,5,6,7 */
+‘b’0 010 000’ => ‘b’0100 ; /* pagina 1 chip 1, desactiva RAM CPC */
+‘b’0 010 001' => ‘b’1111 ;
+
+‘b’0 010 010’ => ‘b’0110 ; /* pagina 2 chip 1, desactiva RAM CPC */
+‘b’0 010 011’ => ‘b’0110 ; /* pagina 2 chip 1, desactiva RAM CPC nunca deberia pasar esto */
+‘b’0 010 100’ => ‘b’1000 ; /* pagina 1 chip 2, desactiva RAM CPC */
+‘b’0 010 101’ => ‘b’1000 ; /* pagina 1 chip 2, desactiva RAM CPC nunca deberia pasar esto */
+
+‘b’0 010 110’ => ‘b’1010 ; /* pagina 2 chip 2, desactiva RAM CPC */
+‘b’0 010 111  => ‘b’1111 ;
+
+
+/* 0,1,1 = 0xC3 pagina 7 en slot 3 (0xC00-0xFFFF) mapa completo 0,3,2,7 */
+/* el slot 1 entra por la señal force A15 */
+[‘b’0 011 000...‘b’0 011 001 ] => ‘b’1111 ;
+‘b’0 011 010’ => ‘b’1010 ; /* pagina 2 chip 2, desactiva RAM CPC */
+[‘b’0 011 011...‘b’0 011 111 ] => ‘b’1111 ;
+
+
+/* Modos 4 a 7, solo entra la pagina 2 */
+[‘b’0 100 000...‘b’0 100 011 ] => ‘b’1111 ;
+‘b’0 100 100’ => ‘b’0100 ; /* pagina 1 chip 1, desactiva RAM CPC */
+‘b’0 100 101’ => ‘b’0100 ; /* pagina 1 chip 1, desactiva RAM CPC nunca deberia pasar esto */
+
+[‘b’0 100 110...‘b’0 101 011 ] => ‘b’1111 ;
+
+‘b’0 101 100’ => ‘b’0110 ; /* pagina 2 chip 1, desactiva RAM CPC nunca deberia pasar esto */
+‘b’0 101 101’ => ‘b’0110 ; /* pagina 2 chip 1, desactiva RAM CPC */
+
+[‘b’0 101 110...‘b’0 110 011 ] => ‘b’1111 ;
+
+‘b’0 110 100’ => ‘b’1000 ; /* pagina 1 chip 2, desactiva RAM CPC */
+‘b’0 110 101’ => ‘b’1000 ; /* pagina 1 chip 2, desactiva RAM CPC nunca deberia pasar esto */
+
+[‘b’0 110 110...‘b’0 111 011 ] => ‘b’1111 ;
+
+‘b’0 111 100’ => ‘b’1010 ; /* pagina 2 chip 2, desactiva RAM CPC */
+‘b’0 111 101’ => ‘b’1010 ; /* pagina 2 chip 2, desactiva RAM CPC nunca deberia pasar esto */
+
+[‘b’0 111 110...‘b’0 111 111 ] => ‘b’1111 ;
+
+[‘b’1 000 000...‘b’1 111 111 ] => ‘b’1111 ; /* todo inactivo MREQ inactivo */
+}
+
+/* LAS BASCULAS DE FORZADO */
+
+/* El truco es que la señal forzada esta en la propia equacion, asi que los dos primeros */
+/* Son un pulso */
+/* Forzamos MREQ solo si escribimos, si leemos lo hacemos con RAM_DIS */
+
+FORCE_A15 = D0 # !D1 # !D2 # !A14 # A15 # MREQ ;
+FORCE_MREQ = IC1_CE # ICE2_CE # MREQ # !RD; 
+END_FORCE = !RD # !WR ;
+
