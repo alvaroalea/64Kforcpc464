@@ -80,7 +80,7 @@ IC2_CE = MREQ  D2  D1  D0   A15  A14  RAM_RD ;
 
 RAM_A14 = MREQ  D2  D1  D0   A15  A14  RAM_RD ;
 
-RAM_DIS = MREQ  D2  D1  D0   A15  A14  RAM_RD ;
+RAM_DIS = ICE1_CE # ICE2_CE ;
 
 
 /* Esto deberia ser mucho mas claro usando tablas de la verdad pero la mierda del WinCULPS */
